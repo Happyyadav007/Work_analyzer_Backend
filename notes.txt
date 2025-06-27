@@ -1,0 +1,36 @@
+api :http://localhost:5000/api/employers/register
+
+{
+  "name": "John Doe",
+  "phone": "+1-555-123-4567",
+  "email": "johndoe@example.com",
+  "password": "StrongPassword123!",
+  "role": "user"
+}
+
+api:http://localhost:5000/api/employers/login
+{
+  "email": "johndoe@example.com",
+  "password": "StrongPassword123!"
+}
+
+
+api:http://localhost:5000/api/items/add/
+{
+  "name": "Ergonomsic Office Chair",
+  "images": [
+    "https://example.com/images/chair-front.jpg",
+    "https://example.com/images/chair-side.jpg"
+  ],
+  "price": 149.99,
+  "seller": "Joahn Doe",
+  "sellerPhone": "+1234567890",
+  "place": "New York",
+  "quality": "new",
+  "addedBy": "user123",
+  "color": "Blaack",
+  "category": "Furniture",
+  "curved": false,
+  "multifunctional": true
+}
+
