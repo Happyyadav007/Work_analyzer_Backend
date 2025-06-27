@@ -7,6 +7,7 @@ dotenv.config();
 export const registerEmployerUser = async (req, res) => {
   try {
     const { name, phone, email, password, role } = req.body;
+    console.log(req.body);
 
     if (!name || !phone || !email || !password || !role) {
       return res.status(400).json({ message: "All fields are required" });
@@ -69,6 +70,8 @@ export const loginEmployerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log(res.getHeaders());
+
     // Validate input
     if (!email || !password) {
       return res
@@ -92,17 +95,21 @@ export const loginEmployerUser = async (req, res) => {
     user.last_login = new Date();
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
-    );
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Set refresh token in secure HTTP-only cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     // Return success response with token and user info
     return res.status(200).json({
       message: "Login successful",
-      token,
+      token: accessToken,
       user: {
         _id: user._id,
         name: user.name,
@@ -118,4 +125,60 @@ export const loginEmployerUser = async (req, res) => {
       .status(500)
       .json({ message: "Server error", error: err.message });
   }
+};
+
+//Access Token
+const generateAccessToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
+};
+//Refresh token
+const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
+export const refreshToken = (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
+  jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+    if (err) {
+      return res
+        .status(403)
+        .json({ message: "Invalid or expired refresh token" });
+    }
+
+    // Verify the user still exists
+    EmployerUser.findById(decoded.id)
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Generate new access token
+        const newAccessToken = generateAccessToken(user);
+        console.log("newAcessToken:-", newAccessToken)
+        return res.status(200).json({ token: newAccessToken });
+      })
+      .catch((error) => {
+        return res
+          .status(500)
+          .json({ message: "Server error", error: error.message });
+      });
+  });
+};
+
+export const logoutUser = (req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict",
+  });
+  return res.status(200).json({ message: "Logged out successfully" });
 };
