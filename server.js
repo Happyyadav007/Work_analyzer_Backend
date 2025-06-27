@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import connectDB from "./database/db.js"; // renamed for clarity
+import cookieParser from 'cookie-parser';
 
 // Routes
 import employerRoutes from "./routes/employers.js";
@@ -18,6 +19,7 @@ const app = express();
 
 // Middleware setup
 app.use(express.json());
+app.use(cookieParser());
 
 // Configure CORS to allow credentials and specific origin
 app.use(
