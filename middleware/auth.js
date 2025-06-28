@@ -37,14 +37,14 @@ export const checkAuth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // attach decoded user info to request
+    console.log("Decoded user:", req.user);
     next();
-  }
-  catch (err) {
+  } catch (err) {
     // Handle token expiration differently
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
         message: "Token expired",
-        code: "TOKEN_EXPIRED" // Frontend can use this to trigger refresh
+        code: "TOKEN_EXPIRED", // Frontend can use this to trigger refresh
       });
     }
     return res.status(401).json({ message: "Token is invalid" });

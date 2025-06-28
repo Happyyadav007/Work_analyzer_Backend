@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-const mongoDb = "mongodb://127.0.0.1:27017/analyzer";
+const mongoDb =
+  "mongodb+srv://interiorvelocity:v3Ml1joe66MRJw8k@velocityworkanalyzer.pv5r7f6.mongodb.net/";
 const connectDb = async () => {
   const db = await mongoose.connect(mongoDb);
   console.log("connection establoished", db.connection.host);

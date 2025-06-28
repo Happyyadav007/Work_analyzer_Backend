@@ -3,14 +3,29 @@ import Item from "../models/Item.js";
 // Add Item
 export const addItem = async (req, res) => {
   try {
-    const { name, price, seller, color } = req.body;
+    const {
+      name,
+      price,
+      seller,
+      sellerPhone,
+      place,
+      quality,
+      color,
+      category,
+      curved,
+      multifunctional,
+      images, // optional
+    } = req.body;
 
     // Check for required fields
     const missingFields = [];
     if (!name) missingFields.push("name");
     if (!price) missingFields.push("price");
     if (!seller) missingFields.push("seller");
-    if (!color) missingFields.push("color");
+    if (!sellerPhone) missingFields.push("sellerPhone");
+    if (!place) missingFields.push("place");
+    if (!quality) missingFields.push("quality");
+    if (!category) missingFields.push("category");
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -29,8 +44,31 @@ export const addItem = async (req, res) => {
       });
     }
 
-    const item = new Item(req.body);
+    const addedBy = req.user.id;
+
+    // Construct item data
+    const itemData = {
+      name,
+      price,
+      seller,
+      sellerPhone,
+      place,
+      quality,
+      color,
+      category,
+      curved,
+      multifunctional,
+      addedBy,
+    };
+
+    // If images are provided and it's an array, include them
+    if (images && Array.isArray(images)) {
+      itemData.images = images;
+    }
+
+    const item = new Item(itemData);
     const savedItem = await item.save();
+
     res.status(201).json({ success: true, data: savedItem });
   } catch (err) {
     res
@@ -49,34 +87,98 @@ export const getItems = async (req, res) => {
   }
 };
 
-// Edit Item
 export const editItem = async (req, res) => {
   try {
-    const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!updatedItem) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Item not found" });
+    const itemId = req.params.id;
+
+    // Find the item
+    const item = await Item.findById(itemId);
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
     }
-    res.status(200).json({ success: true, data: updatedItem });
+
+    if (item.addedBy !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this item",
+      });
+    }
+
+    // Define allowed fields for update
+    const allowedFields = [
+      "name",
+      "price",
+      "seller",
+      "sellerPhone",
+      "place",
+      "quality",
+      "color",
+      "category",
+      "curved",
+      "multifunctional",
+      "images",
+    ];
+
+    // Apply updates only to allowed fields
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        item[field] = req.body[field];
+      }
+    });
+
+    const updatedItem = await item.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Item updated successfully",
+      data: updatedItem,
+    });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message || "Server error",
+    });
   }
 };
 
-// Delete Item
 export const deleteItem = async (req, res) => {
   try {
-    const deleted = await Item.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Item not found" });
+    const itemId = req.params.id;
+
+    // Find the item first
+    const item = await Item.findById(itemId);
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
     }
-    res.status(200).json({ success: true, message: "Item deleted" });
+
+    // Authorization: only creator or admin can delete
+    const userId = req.user.id;
+    const userRole = req.user.role?.toLowerCase();
+
+    if (item.addedBy !== userId && userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this item",
+      });
+    }
+
+    // Delete the item
+    await Item.findByIdAndDelete(itemId);
+
+    res.status(200).json({
+      success: true,
+      message: "Item deleted successfully",
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message || "Server error",
+    });
   }
 };

@@ -2,7 +2,10 @@ import express from "express";
 import * as employerUserController from "../controllers/employerUserController.js";
 import { checkAuth } from "../middleware/auth.js"; // Adjust path
 import upload from "../middleware/upload.js";
-import { refreshToken, logoutUser } from "../controllers/employerUserController.js";
+import {
+  refreshToken,
+  logoutUser,
+} from "../controllers/employerUserController.js";
 
 const router = express.Router();
 

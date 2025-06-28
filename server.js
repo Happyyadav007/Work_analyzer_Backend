@@ -3,7 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import connectDB from "./database/db.js"; // renamed for clarity
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 
 // Routes
 import employerRoutes from "./routes/employers.js";
@@ -24,7 +24,7 @@ app.use(cookieParser());
 // Configure CORS to allow credentials and specific origin
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend origin
+    origin: "http://localhost:5175",
     credentials: true, // allow cookies/auth credentials
   })
 );

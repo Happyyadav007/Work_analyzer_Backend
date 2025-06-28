@@ -27,7 +27,6 @@ api:http://localhost:5000/api/items/add/
   "sellerPhone": "+1234567890",
   "place": "New York",
   "quality": "new",
-  "addedBy": "user123",
   "color": "Blaack",
   "category": "Furniture",
   "curved": false,
