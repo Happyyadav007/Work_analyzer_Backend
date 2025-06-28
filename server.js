@@ -25,9 +25,11 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:5175",
-    credentials: true, // allow cookies/auth credentials
+    credentials: true, 
   })
 );
+
+// app.use(cors());
 
 app.use(morgan("tiny"));
 app.disable("x-powered-by");
